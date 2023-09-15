@@ -12,6 +12,13 @@ services:
       - ./truck_app:/truck_app
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8090"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=maris
+      - DB_PASS=bv4811ss
+    depends_on:
+      - db
 
   vue:
     build:
@@ -21,3 +28,15 @@ services:
       - "8080:8080"
     depends_on:
       - app
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=maris
+      - POSTGRES_PASSWORD=bv4811ss
+
+volumes:
+  dev-db-data:
