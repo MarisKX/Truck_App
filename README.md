@@ -1,3 +1,3 @@
-# Template-Django-Docker
-Template for Projects with Django/Python/API Based backend
+# Truck Maintence tracking app
+App for tracking Trucks and Vans maintence logs/schedule
 
