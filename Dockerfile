@@ -4,10 +4,10 @@ ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
-COPY ./template /template
+COPY ./truck_app /truck_app
 
-WORKDIR /template
-EXPOSE 8050
+WORKDIR /truck_app
+EXPOSE 8090
 
 ARG DEV=false
 

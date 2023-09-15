@@ -7,8 +7,17 @@ services:
       args:
        - DEV=true
     ports:
-      - "8050:8050"
+      - "8090:8090"
     volumes:
-      - ./template:/template
+      - ./truck_app:/truck_app
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8050"
+      sh -c "python manage.py runserver 0.0.0.0:8090"
+
+  vue:
+    build:
+      context: ./truck_app/vue
+    command: npm run serve
+    ports:
+      - "8080:8080"
+    depends_on:
+      - app
