@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # Custom apps:
     'core',
     'user',
+    'trucks',
 ]
 
 MIDDLEWARE = [
