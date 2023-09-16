@@ -33,7 +33,7 @@ def create_truck(user, **params):
     }
     defaults.update(params)
 
-    truck = Truck.objects.create(last_edit_by=user, **defaults)
+    truck = Truck.objects.create(user=user, **defaults)
     return truck
 
 
@@ -59,7 +59,7 @@ class PrivateTruckApiTests(TestCase):
     """Test authenticated API requests"""
     def setUp(self):
         self.client = APIClient()
-        self.user = create_user(email='user@example.com', password='pass123')
+        self.user = create_user(email='user@example.com', password='pass1235')
         self.client.force_authenticate(self.user)
 
     def test_retrieve_trucks(self):
@@ -110,12 +110,12 @@ class PrivateTruckApiTests(TestCase):
         truck = Truck.objects.get(id=res.data['id'])
         for k, v in payload.items():
             self.assertEqual(getattr(truck, k), v)
-        self.assertEqual(truck.last_edit_by, self.user)
+        self.assertEqual(truck.user, self.user)
 
     def test_update_truck_last_edited_by(self):
         """Test updating a truck's via API"""
         truck = Truck.objects.create(
-            last_edit_by=self.user,
+            user=self.user,
             licence_plate="AH6814",
             make="FREIGHTLINER",
             model="CASCADIA 125",
@@ -141,5 +141,17 @@ class PrivateTruckApiTests(TestCase):
         for k, v in payload.items():
             self.assertEqual(getattr(truck, k), v)
 
-        self.assertEqual(truck.last_edit_by, user2)
+        self.assertEqual(truck.user, user2)
         self.assertEqual(truck.make, original_make)
+
+    def test_update_user_returns_error(self):
+        """Test chaning the user results in an error"""
+        new_user = create_user(email='test@example.com', password='123456Test')
+        truck = create_truck(user=self.user)
+
+        payload = {'user': new_user.id}
+        url = detail_url(truck.id)
+        self.client.patch(url, payload)
+
+        truck.refresh_from_db()
+        self.assertEqual(truck.user, self.user)

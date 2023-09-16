@@ -27,7 +27,7 @@ class TruckViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
     def perform_create(self, serializer):
-        serializer.save(last_edit_by=self.request.user)
+        serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
-        serializer.save(last_edit_by=self.request.user)
+        serializer.save(user=self.request.user)

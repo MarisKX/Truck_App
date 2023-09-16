@@ -24,7 +24,7 @@ class ModelTests(TestCase):
             'testpass123',
         )
         truck = Truck.objects.create(
-            last_edit_by=user,
+            user=user,
             licence_plate="AH6814",
             make="FREIGHTLINER",
             model="CASCADIA 125",
@@ -41,7 +41,7 @@ class ModelTests(TestCase):
             'testpass123',
         )
         Truck.objects.create(
-            last_edit_by=user,
+            user=user,
             licence_plate="AH6814",
             make="FREIGHTLINER",
             model="CASCADIA 125",
@@ -50,7 +50,7 @@ class ModelTests(TestCase):
         )
         with self.assertRaises(IntegrityError):
             Truck.objects.create(
-                last_edit_by=user,
+                user=user,
                 licence_plate="NEW_PLATE",
                 make="FREIGHTLINER",
                 model="CASCADIA 125",

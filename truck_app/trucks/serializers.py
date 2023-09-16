@@ -12,14 +12,14 @@ class TruckSerializer(serializers.ModelSerializer):
         model = Truck
         fields = [
             'id',
-            'last_edit_by',
+            'user',
             'licence_plate',
             'make',
             'model',
             'year',
             'vin',
         ]
-        read_only_fields = ['id', 'last_edited_by', ]
+        read_only_fields = ['id', 'user', ]
 
 
 class TruckDetailSerializer(TruckSerializer):

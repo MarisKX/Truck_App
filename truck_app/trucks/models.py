@@ -7,8 +7,9 @@ from django.db import models
 
 class Truck(models.Model):
     """Truck Objects"""
-    last_edit_by = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        verbose_name='Last Edit By',
         on_delete=models.PROTECT,
         default=1)
     licence_plate = models.CharField(max_length=12)
