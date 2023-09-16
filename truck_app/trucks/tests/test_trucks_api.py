@@ -9,10 +9,14 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from trucks.models import Truck
-from trucks.serializers import TruckSerializer
+from trucks.serializers import (
+    TruckSerializer,
+    # TruckDetailSerializer,
+)
 
 
 TRUCKS_URL = reverse('trucks:truck-list')
+
 
 def create_truck(user, **params):
     """Create and return a sample truck"""
@@ -26,6 +30,7 @@ def create_truck(user, **params):
 
     truck = Truck.objects.create(last_edit_by=user, **defaults)
     return truck
+
 
 def create_user(**params):
     """Create and return a new user"""

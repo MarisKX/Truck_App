@@ -19,4 +19,4 @@ class TruckSerializer(serializers.ModelSerializer):
             'year',
             'vin',
         ]
-        read_only_fields = ['id', 'last_edited_by',]
+        read_only_fields = ['id', 'last_edited_by', ]
