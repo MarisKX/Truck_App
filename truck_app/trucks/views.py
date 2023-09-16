@@ -14,7 +14,20 @@ from trucks import serializers
 
 class TruckViewSet(viewsets.ModelViewSet):
     """View for manage trucks API's"""
-    serializer_class = serializers.TruckSerializer
+    serializer_class = serializers.TruckDetailSerializer
     queryset = Truck.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Return the serializer class for request"""
+        if self.action == 'list':
+            return serializers.TruckSerializer
+
+        return self.serializer_class
+
+    def perform_create(self, serializer):
+        serializer.save(last_edit_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(last_edit_by=self.request.user)

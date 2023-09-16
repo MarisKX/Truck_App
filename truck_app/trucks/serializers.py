@@ -20,3 +20,10 @@ class TruckSerializer(serializers.ModelSerializer):
             'vin',
         ]
         read_only_fields = ['id', 'last_edited_by', ]
+
+
+class TruckDetailSerializer(TruckSerializer):
+    """Serializer for recipe detail view"""
+
+    class Meta(TruckSerializer.Meta):
+        fields = TruckSerializer.Meta.fields + ['color', 'engine', ]

@@ -11,11 +11,16 @@ from rest_framework.test import APIClient
 from trucks.models import Truck
 from trucks.serializers import (
     TruckSerializer,
-    # TruckDetailSerializer,
+    TruckDetailSerializer,
 )
 
 
 TRUCKS_URL = reverse('trucks:truck-list')
+
+
+def detail_url(truck_id):
+    """Create and return a truck detail URL"""
+    return reverse('trucks:truck-detail', args=[truck_id])
 
 
 def create_truck(user, **params):
@@ -74,3 +79,67 @@ class PrivateTruckApiTests(TestCase):
         serializer = TruckSerializer(trucks, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_get_truck_detail(self):
+        """Test get truck detail"""
+        truck = create_truck(
+            user=self.user,
+            vin="3AKJGLD58GSHR6402"
+        )
+
+        url = detail_url(truck.id)
+        res = self.client.get(url)
+
+        serializer = TruckDetailSerializer(truck)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_create_truck(self):
+        """Test creating a truck via API"""
+        payload = {
+            'licence_plate': "AH6814",
+            'make': "FREIGHTLINER",
+            'model': "CASCADIA 125",
+            'year': 2016,
+            'vin': "3AKJGLD58GSHR6402",
+            'color': 'White',
+            'engine': "14.8L 6"
+        }
+        res = self.client.post(TRUCKS_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        truck = Truck.objects.get(id=res.data['id'])
+        for k, v in payload.items():
+            self.assertEqual(getattr(truck, k), v)
+        self.assertEqual(truck.last_edit_by, self.user)
+
+    def test_update_truck_last_edited_by(self):
+        """Test updating a truck's via API"""
+        truck = Truck.objects.create(
+            last_edit_by=self.user,
+            licence_plate="AH6814",
+            make="FREIGHTLINER",
+            model="CASCADIA 125",
+            year=2016,
+            vin="3AKJGLD58GSHR6402"
+        )
+        original_make = truck.make
+
+        user2 = create_user(
+            email='test2@example.com',
+            password='testpass456'
+        )
+
+        self.client.force_authenticate(user=user2)
+
+        payload = {'licence_plate': "JR6517", 'engine': "15.2L 8"}
+        url = detail_url(truck.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        truck.refresh_from_db()
+
+        for k, v in payload.items():
+            self.assertEqual(getattr(truck, k), v)
+
+        self.assertEqual(truck.last_edit_by, user2)
+        self.assertEqual(truck.make, original_make)

@@ -17,5 +17,8 @@ class Truck(models.Model):
     year = models.IntegerField()
     vin = models.CharField(max_length=17, unique=True)
 
+    color = models.CharField(max_length=30, blank=True, null=True)
+    engine = models.CharField(max_length=30, blank=True, null=True)
+
     def __str__(self):
         return self.licence_plate
