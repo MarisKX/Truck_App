@@ -7,7 +7,7 @@ from django.db import models
 
 class Truck(models.Model):
     """Truck Objects"""
-    last_edit = models.ForeignKey(
+    last_edit_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         default=1)
@@ -15,7 +15,7 @@ class Truck(models.Model):
     make = models.CharField(max_length=255)
     model = models.CharField(max_length=255)
     year = models.IntegerField()
-    vin = models.CharField(max_length=17)
+    vin = models.CharField(max_length=17, unique=True)
 
     def __str__(self):
         return self.licence_plate

@@ -23,7 +23,7 @@ class ModelTests(TestCase):
             'testpass123',
         )
         truck = Truck.objects.create(
-            last_edit=user,
+            last_edit_by=user,
             licence_plate="AH6814",
             make="FREIGHTLINER",
             model="CASCADIA 125",

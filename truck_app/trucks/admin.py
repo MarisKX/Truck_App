@@ -9,7 +9,7 @@ from trucks.models import Truck
 
 
 class TruckAdmin(admin.ModelAdmin):
-    readonly_fields = ('last_edit', )
+    readonly_fields = ('last_edit_by', )
     list_display = (
         'licence_plate',
         'make',
