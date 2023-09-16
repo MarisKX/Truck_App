@@ -1,7 +1,7 @@
 """
 Tests for models.
 """
-from decimal import Decimal
+from decimal import Decimal  # noqa
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
@@ -24,11 +24,11 @@ class ModelTests(TestCase):
         )
         truck = Truck.objects.create(
             last_edit=user,
-            licence_plate = "AH6814",
-            make = "FREIGHTLINER",
-            model = "CASCADIA 125",
-            year = "2016",
-            vin = "3AKJGLD58GSHR6402"
+            licence_plate="AH6814",
+            make="FREIGHTLINER",
+            model="CASCADIA 125",
+            year="2016",
+            vin="3AKJGLD58GSHR6402"
         )
 
         self.assertEqual(str(truck), truck.licence_plate)
