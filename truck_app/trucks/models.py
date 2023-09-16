@@ -3,6 +3,7 @@ Database truck models.
 """
 from django.conf import settings
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Truck(models.Model):
@@ -15,7 +16,11 @@ class Truck(models.Model):
     licence_plate = models.CharField(max_length=12)
     make = models.CharField(max_length=255)
     model = models.CharField(max_length=255)
-    year = models.IntegerField()
+    year = models.IntegerField(
+        validators=[
+            MinValueValidator(1900),
+            MaxValueValidator(2100)
+        ])
     vin = models.CharField(max_length=17, unique=True)
 
     color = models.CharField(max_length=30, blank=True, null=True)

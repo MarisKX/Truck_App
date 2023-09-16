@@ -2,6 +2,7 @@
 """
 Tests for Trucks APis
 """
+from datetime import datetime
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -155,3 +156,51 @@ class PrivateTruckApiTests(TestCase):
 
         truck.refresh_from_db()
         self.assertEqual(truck.user, self.user)
+
+    def test_delete_truck(self):
+        """Test deleting a truck successfull"""
+        truck = create_truck(user=self.user)
+
+        url = detail_url(truck.id)
+        res = self.client.delete(url)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Truck.objects.filter(id=truck.id).exists())
+
+    def test_create_truck_valid_year(self):
+        """Test creating a truck with a valid year"""
+        payload = {
+            'licence_plate': "VALID1",
+            'make': "VALID_MAKE",
+            'model': "VALID_MODEL",
+            'year': datetime.now().year,
+            'vin': "VALID_VIN1",
+        }
+        res = self.client.post(TRUCKS_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        truck = Truck.objects.get(id=res.data['id'])
+        self.assertEqual(truck.year, payload['year'])
+
+    def test_create_truck_invalid_year(self):
+        """Test creating a truck with an invalid year should fail"""
+        payload = {
+            'licence_plate': "INVALID1",
+            'make': "INVALID_MAKE",
+            'model': "INVALID_MODEL",
+            'year': 1800,  # Invalid year
+            'vin': "INVALID_VIN1",
+        }
+        res = self.client.post(TRUCKS_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_truck_invalid_year(self):
+        """Test updating a truck with an invalid year should fail"""
+        truck = create_truck(
+            user=self.user,
+            vin="VALID_VIN2"
+        )
+        payload = {'year': 1800}  # Invalid year
+        url = detail_url(truck.id)
+        res = self.client.patch(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        truck.refresh_from_db()
+        self.assertNotEqual(truck.year, 1800)
