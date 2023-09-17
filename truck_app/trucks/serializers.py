@@ -34,7 +34,9 @@ class TruckSerializer(serializers.ModelSerializer):
         """
         current_year = datetime.now().year
         if value < 1900 or value > current_year:
-            raise serializers.ValidationError(f'Year must be between 1900 and {current_year}')
+            raise serializers.ValidationError(
+                f'Year must be between 1900 and {current_year}'
+            )
         return value
 
 
