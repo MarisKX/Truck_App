@@ -4,7 +4,7 @@ Django admin customization
 # Django imports
 from django.contrib import admin
 # Custom imports
-from maintenance.models import Job, MaintenanceCode
+from maintenance.models import Job, MaintenanceGroup
 
 
 @admin.register(Job)
@@ -14,7 +14,7 @@ class JobAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 
-@admin.register(MaintenanceCode)
-class MaintenanceCodeAdmin(admin.ModelAdmin):
+@admin.register(MaintenanceGroup)
+class MaintenanceGroupAdmin(admin.ModelAdmin):
     readonly_fields = ('name',)
     list_display = ('code', 'display_name', 'name')

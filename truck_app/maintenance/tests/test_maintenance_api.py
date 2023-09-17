@@ -1,0 +1,165 @@
+"""
+Tests for maintenance codes and jobs API
+"""
+# Django general imports
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.urls import reverse
+# Rest Framework imports
+from rest_framework import status
+from rest_framework.test import APIClient
+# Custom imports
+from maintenance.models import MaintenanceGroup, Job
+from maintenance.serializers import (
+    MaintenanceGroupSerializer,
+    MaintenanceGroupDetailSerializer,
+)
+
+
+MAINTENANCE_URL = reverse('maintenance:maintenancegroup-list')
+# JOB_URL = reverse('maintenance:job-list')
+
+def detail_url(maintenancegroup_id):
+    """Create and return a maintenance group detail url"""
+    return reverse('maintenance:maintenancegroup-detail', args=[maintenancegroup_id])
+
+def create_maintenance_group(**params):
+    """Create and return a sample maintenance group"""
+    defaults = {
+        'code': 'A',
+        'display_name': 'Maintenance A',
+    }
+    defaults.update(params)
+    maintenance_group = MaintenanceGroup.objects.create(**defaults)
+    return maintenance_group
+
+def create_user(**params):
+    return get_user_model().objects.create_user(**params)
+
+
+class PublicMaintenanceApiTests(TestCase):
+    """Test unauthenticated API requests for Maintenance"""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_auth_required(self):
+        """Test that authentication is required to retrieve MaintenanceCode"""
+        res = self.client.get(MAINTENANCE_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # res = self.client.get(JOB_URL)
+        # self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateMaintenanceApiTests(TestCase):
+    """Test authenticated API requests for Maintenance"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(email='user@example.com', password='pass1235')
+        self.client.force_authenticate(self.user)
+
+    def test_retrieve_maintenance_groups(self):
+        """Test retrieving a list of Maintenance Groups"""
+
+        MaintenanceGroup.objects.create(
+            code="A+",
+            display_name="Maintenance A+"
+        )
+        MaintenanceGroup.objects.create(
+            code="B-",
+            display_name="Maintenance B-"
+        )
+
+        res = self.client.get(MAINTENANCE_URL)
+        groups = MaintenanceGroup.objects.all().order_by('name')
+        serializer = MaintenanceGroupSerializer(groups, many=True)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_get_maintenance_group_details(self):
+        """Test get maintenance group details"""
+        maintenance_group = create_maintenance_group()
+
+        url = detail_url(maintenance_group.id)
+        res = self.client.get(url)
+
+        serializer = MaintenanceGroupDetailSerializer(maintenance_group)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_create_maintenance_group(self):
+        """Test creating a maintenance group"""
+        payload = {
+            'code': 'B',
+            'display_name': 'Maintenance B'
+        }
+        res = self.client.post(MAINTENANCE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        maintenance_group = MaintenanceGroup.objects.get(id=res.data['id'])
+        for k, v in payload.items():
+            self.assertEqual(getattr(maintenance_group, k), v)
+
+    def test_create_maintenance_group_with_empty_fields_fails(self):
+        """Test that creating a maintenance group with empty fields fails"""
+
+        payload = {'code': '', 'display_name': 'Maintenance B'}
+        res = self.client.post(MAINTENANCE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {'code': 'B', 'display_name': ''}
+        res = self.client.post(MAINTENANCE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {'code': '', 'display_name': ''}
+        res = self.client.post(MAINTENANCE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_partial_update_maintenance_group(self):
+        """Test updating a maintenance group with patch, including automatic name update"""
+
+        maintenance_group = MaintenanceGroup.objects.create(
+            code="A",
+            display_name="Maintenance A"
+        )
+
+        self.assertEqual(maintenance_group.name, "maintenance_a")
+
+        url = detail_url(maintenance_group.id)
+
+        payload = {'code': 'A1'}
+        res = self.client.patch(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        maintenance_group.refresh_from_db()
+        self.assertEqual(maintenance_group.code, payload['code'])
+        self.assertEqual(maintenance_group.display_name, "Maintenance A")
+        self.assertEqual(maintenance_group.name, "maintenance_a")
+
+        payload = {'display_name': 'Maintenance A1'}
+        res = self.client.patch(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        maintenance_group.refresh_from_db()
+        self.assertEqual(maintenance_group.display_name, payload['display_name'])
+        self.assertEqual(maintenance_group.code, 'A1')
+        self.assertEqual(maintenance_group.name, "maintenance_a1")
+
+    def test_full_update_maintenance_group(self):
+        """Test updating a maintenance group with put"""
+
+        maintenance_group = MaintenanceGroup.objects.create(
+            code="A",
+            display_name="Maintenance A"
+        )
+
+        url = detail_url(maintenance_group.id)
+        payload = {'code': 'A1', 'display_name': 'Maintenance A1'}
+
+        res = self.client.put(url, payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        maintenance_group.refresh_from_db()
+        self.assertEqual(maintenance_group.code, payload['code'])
+        self.assertEqual(maintenance_group.display_name, payload['display_name'])
+        self.assertEqual(maintenance_group.name, "maintenance_a1")

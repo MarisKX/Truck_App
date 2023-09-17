@@ -6,7 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
-from maintenance.models import MaintenanceCode
+from maintenance.models import MaintenanceCode, Job
 from maintenance.serializers import (
     MaintenanceCodeSerializer,
 )
@@ -94,3 +94,28 @@ class PrivateMaintenanceApiTests(TestCase):
         }
         res = self.client.post(MAINTENANCE_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_maintenance_with_existing_jobs(self):
+        """Test creating a Maintenance Code with existing jobs"""
+        self.existing_job1 = Job.objects.create(
+            name='Existing Job1', display_name='Existing Display 1'
+        )
+        self.existing_job2 = Job.objects.create(
+            name='Existing Job2', display_name='Existing Display 2'
+        )
+        payload = {
+            'code': 'B+',
+            'display_name': 'Maintenance B+',
+            'jobs': [
+                {'display_name': 'Existing Display 1'},  # existing job
+
+            ]
+        }
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
+        print(res.json())
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        maintenance = MaintenanceCode.objects.get(id=res.data['id'])
+        jobs = maintenance.jobs.all()
+        self.assertEqual(len(jobs), 2)
