@@ -53,9 +53,6 @@ class PublicMaintenanceApiTests(TestCase):
         res = self.client.get(MAINTENANCE_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        # res = self.client.get(JOB_URL)
-        # self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 class PrivateMaintenanceApiTests(TestCase):
     """Test authenticated API requests for Maintenance"""
@@ -99,13 +96,24 @@ class PrivateMaintenanceApiTests(TestCase):
         """Test creating a maintenance group"""
         payload = {
             'code': 'B',
-            'display_name': 'Maintenance B'
+            'display_name': 'Maintenance B',
+            'jobs': [
+                {'display_name': 'Oil Change'},
+            ]
         }
-        res = self.client.post(MAINTENANCE_URL, payload)
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         maintenance_group = MaintenanceGroup.objects.get(id=res.data['id'])
+
         for k, v in payload.items():
-            self.assertEqual(getattr(maintenance_group, k), v)
+            if k == 'jobs':
+                jobs = maintenance_group.jobs.all()
+                job_list = []
+                for job in jobs:
+                    job_list.append({'display_name': job.display_name})
+                self.assertEqual(job_list, v)
+            else:
+                self.assertEqual(getattr(maintenance_group, k), v)
 
     def test_create_maintenance_group_with_empty_fields_fails(self):
         """Test that creating a maintenance group with empty fields fails"""
@@ -165,7 +173,10 @@ class PrivateMaintenanceApiTests(TestCase):
         )
 
         url = detail_url(maintenance_group.id)
-        payload = {'code': 'A1', 'display_name': 'Maintenance A1'}
+        payload = {
+            'code': 'A1',
+            'display_name': 'Maintenance A1',
+            'jobs': [{'display_name': 'Brake Disc Change'}]}
 
         res = self.client.put(url, payload)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -226,3 +237,107 @@ class PrivateMaintenanceApiTests(TestCase):
                 display_name=job['display_name']
             ).exists()
             self.assertTrue(exists)
+
+    def test_create_job_on_update(self):
+        """Test creating a job when update maintenance group"""
+        maintenance_group = MaintenanceGroup.objects.create(
+            code="Custom1",
+            display_name="Custom1"
+        )
+        payload = {'jobs': [{'display_name': 'Brake Pad Change'}]}
+        url = detail_url(maintenance_group.id)
+
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_job = Job.objects.get(name='brake_pad_change')
+        self.assertIn(new_job, maintenance_group.jobs.all())
+
+    def test_update_maintenance_froup_assign_job(self):
+        job1 = Job.objects.create(display_name='Oil Change')
+        maintenance_group = MaintenanceGroup.objects.create(
+            code="Custom1",
+            display_name="Custom1"
+        )
+        maintenance_group.jobs.add(job1)
+
+        job2 = Job.objects.create(display_name='Oil Filter Change')
+        payload = {'jobs': [{'display_name': 'Oil Filter Change'}]}
+        url = detail_url(maintenance_group.id)
+
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(job2, maintenance_group.jobs.all())
+        self.assertNotIn(job1, maintenance_group.jobs.all())
+
+    def test_partialy_clear_jobs(self):
+        """Test removing job from maintenance group"""
+        job1 = Job.objects.create(display_name='Oil Change')
+        job2 = Job.objects.create(display_name='Oil Filter Change')
+        job3 = Job.objects.create(display_name='Air Filter Change')
+        maintenance_group = MaintenanceGroup.objects.create(
+            code="Custom1",
+            display_name="Custom1"
+        )
+        maintenance_group.jobs.add(job1, job2, job3)
+
+        payload = {
+            'jobs': [
+                {'display_name': 'Oil Change'},
+                {'display_name': 'Oil Filter Change'},
+            ]
+        }
+        url = detail_url(maintenance_group.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(job1, maintenance_group.jobs.all())
+        self.assertIn(job2, maintenance_group.jobs.all())
+        self.assertNotIn(job3, maintenance_group.jobs.all())
+
+    def test_create_maintenance_group_without_jobs_fails(self):
+        """Test that creating a maintenance group without jobs fails"""
+        payload = {
+            'code': 'C',
+            'display_name': 'Maintenance C',
+        }
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('jobs', res.data)
+
+    def test_create_maintenance_group_with_empty_jobs_fails(self):
+        """Test that creating a maintenance group with empty jobs list fails"""
+        payload = {
+            'code': 'C',
+            'display_name': 'Maintenance C',
+            'jobs': []
+        }
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('jobs', res.data)
+
+    def test_update_maintenance_group_without_jobs_fails(self):
+        """Test that updating a maintenance group without jobs fails"""
+        maintenance_group = create_maintenance_group()
+        url = detail_url(maintenance_group.id)
+        payload = {
+            'code': 'C1',
+            'display_name': 'Maintenance C1',
+        }
+        res = self.client.put(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('jobs', res.data)
+
+    def test_update_maintenance_group_with_empty_jobs_fails(self):
+        """Test that updating a maintenance group with empty jobs list fails"""
+        maintenance_group = create_maintenance_group()
+        url = detail_url(maintenance_group.id)
+        payload = {
+            'code': 'C1',
+            'display_name': 'Maintenance C1',
+            'jobs': []
+        }
+        res = self.client.put(url, payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('jobs', res.data)

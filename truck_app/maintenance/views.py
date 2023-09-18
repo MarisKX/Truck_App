@@ -7,6 +7,8 @@ from rest_framework import (
 )
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.response import Response
 from maintenance.models import MaintenanceGroup, Job
 from maintenance import serializers
 
@@ -32,6 +34,14 @@ class MaintenanceGroupViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Create a new Maintenance group"""
         serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        # Enforce that `jobs` should not be empty if method is PUT
+        if request.method == 'PUT':
+            if 'jobs' not in request.data or not request.data['jobs']:
+                return Response({'jobs': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return super().update(request, *args, **kwargs)
 
 
 class JobViewSet(
