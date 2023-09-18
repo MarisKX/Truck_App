@@ -9,8 +9,8 @@ from maintenance import views
 
 
 router = DefaultRouter()
-router.register('maintenance_code', views.MaintenanceGroupViewSet)
-# router.register('jobs', views.JobViewSet)
+router.register('maintenance_groups', views.MaintenanceGroupViewSet)
+router.register('jobs', views.JobViewSet)
 
 app_name = 'maintenance'
 

@@ -1,5 +1,5 @@
 """
-Tests for maintenance codes and jobs API
+Tests for maintenance groups API
 """
 # Django general imports
 from django.contrib.auth import get_user_model
@@ -17,11 +17,15 @@ from maintenance.serializers import (
 
 
 MAINTENANCE_URL = reverse('maintenance:maintenancegroup-list')
-# JOB_URL = reverse('maintenance:job-list')
+
 
 def detail_url(maintenancegroup_id):
     """Create and return a maintenance group detail url"""
-    return reverse('maintenance:maintenancegroup-detail', args=[maintenancegroup_id])
+    return reverse(
+        'maintenance:maintenancegroup-detail',
+        args=[maintenancegroup_id],
+    )
+
 
 def create_maintenance_group(**params):
     """Create and return a sample maintenance group"""
@@ -32,6 +36,7 @@ def create_maintenance_group(**params):
     defaults.update(params)
     maintenance_group = MaintenanceGroup.objects.create(**defaults)
     return maintenance_group
+
 
 def create_user(**params):
     return get_user_model().objects.create_user(**params)
@@ -118,7 +123,10 @@ class PrivateMaintenanceApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_partial_update_maintenance_group(self):
-        """Test updating a maintenance group with patch, including automatic name update"""
+        """
+        Test updating a maintenance group with patch,
+        including automatic name update
+        """
 
         maintenance_group = MaintenanceGroup.objects.create(
             code="A",
@@ -141,7 +149,10 @@ class PrivateMaintenanceApiTests(TestCase):
         res = self.client.patch(url, payload)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         maintenance_group.refresh_from_db()
-        self.assertEqual(maintenance_group.display_name, payload['display_name'])
+        self.assertEqual(
+            maintenance_group.display_name,
+            payload['display_name'],
+        )
         self.assertEqual(maintenance_group.code, 'A1')
         self.assertEqual(maintenance_group.name, "maintenance_a1")
 
@@ -161,5 +172,57 @@ class PrivateMaintenanceApiTests(TestCase):
 
         maintenance_group.refresh_from_db()
         self.assertEqual(maintenance_group.code, payload['code'])
-        self.assertEqual(maintenance_group.display_name, payload['display_name'])
+        self.assertEqual(
+            maintenance_group.display_name,
+            payload['display_name'],
+        )
         self.assertEqual(maintenance_group.name, "maintenance_a1")
+
+    def test_create_maintenance_group_with_new_jobs(self):
+        """Test creating a maintenance group with new job"""
+        payload = {
+            'code': 'A',
+            'display_name': 'Maintenance A',
+            'jobs': [
+                {'display_name': 'Oil Change'},
+                {'display_name': 'Oil Filter Change'},
+            ]
+        }
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        maintenance_groups = MaintenanceGroup.objects.all()
+        self.assertEqual(maintenance_groups.count(), 1)
+        maintenance_group = maintenance_groups[0]
+        self.assertEqual(maintenance_group.jobs.count(), 2)
+        for job in payload['jobs']:
+            exists = maintenance_group.jobs.filter(
+                display_name=job['display_name']
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_maintenance_group_with_existing_jobs(self):
+        """Test creating a maintenance group with existing job"""
+        job_1 = Job.objects.create(display_name='Air Filter Change')
+        payload = {
+            'code': 'A+',
+            'display_name': 'Maintenance A+',
+            'jobs': [
+                {'display_name': 'Air Filter Change'},
+                {'display_name': 'Oil Filter Change'},
+            ]
+        }
+
+        res = self.client.post(MAINTENANCE_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        maintenance_groups = MaintenanceGroup.objects.all()
+        self.assertEqual(maintenance_groups.count(), 1)
+        maintenance_group = maintenance_groups[0]
+        self.assertEqual(maintenance_group.jobs.count(), 2)
+        self.assertIn(job_1, maintenance_group.jobs.all())
+        for job in payload['jobs']:
+            exists = maintenance_group.jobs.filter(
+                display_name=job['display_name']
+            ).exists()
+            self.assertTrue(exists)

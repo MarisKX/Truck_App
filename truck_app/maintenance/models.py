@@ -6,7 +6,7 @@ from django.db import models
 
 class Job(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
-    display_name = models.CharField(max_length=100, unique=True)
+    display_name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -26,7 +26,7 @@ class MaintenanceGroup(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=100)
     display_name = models.CharField(max_length=100)
-    # jobs = models.ManyToManyField(Job, related_name='jobs')
+    jobs = models.ManyToManyField(Job, related_name='maintenance_groups')
 
     def __str__(self):
         return self.code

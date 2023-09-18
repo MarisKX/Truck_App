@@ -8,7 +8,6 @@ class MaintenanceModelsTests(TestCase):
     def test_create_job(self):
         """Test that a job can be created"""
         job = Job.objects.create(
-            name='oil_change',
             display_name='Oil Change'
         )
 

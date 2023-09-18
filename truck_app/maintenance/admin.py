@@ -17,4 +17,4 @@ class JobAdmin(admin.ModelAdmin):
 @admin.register(MaintenanceGroup)
 class MaintenanceGroupAdmin(admin.ModelAdmin):
     readonly_fields = ('name',)
-    list_display = ('code', 'display_name', 'name')
+    list_display = ('code', 'display_name', 'name', )
