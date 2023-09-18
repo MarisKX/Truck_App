@@ -39,7 +39,9 @@ class MaintenanceGroupViewSet(viewsets.ModelViewSet):
         # Enforce that `jobs` should not be empty if method is PUT
         if request.method == 'PUT':
             if 'jobs' not in request.data or not request.data['jobs']:
-                return Response({'jobs': 'This field is required.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'jobs': 'This field is required.'},
+                    status=status.HTTP_400_BAD_REQUEST)
 
         return super().update(request, *args, **kwargs)
 

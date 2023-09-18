@@ -36,7 +36,8 @@ class MaintenanceGroupSerializer(serializers.ModelSerializer):
         """Create a Maintenance Group"""
         jobs = validated_data.pop('jobs', [])
         if not jobs:
-            raise ValidationError({'jobs': 'At least one job must be provided.'})
+            raise ValidationError(
+                {'jobs': 'At least one job must be provided.'})
         maintenance_group = MaintenanceGroup.objects.create(**validated_data)
         self._get_or_create_jobs(jobs, maintenance_group)
 
@@ -47,7 +48,8 @@ class MaintenanceGroupSerializer(serializers.ModelSerializer):
         jobs = validated_data.pop('jobs', None)
         if jobs is not None:
             if not jobs:
-                raise ValidationError({'jobs': 'At least one job must be provided.'})
+                raise ValidationError(
+                    {'jobs': 'At least one job must be provided.'})
             instance.jobs.clear()
             self._get_or_create_jobs(jobs, instance)
 
