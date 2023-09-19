@@ -4,7 +4,7 @@ Serializers for the maintenance and jobs API View
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import MaintenanceGroup, Job
+from .models import MaintenanceGroup, Job, Category
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -15,13 +15,21 @@ class JobSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'name', ]
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for jobs"""
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'display_name', ]
+        read_only_fields = ['id', 'name', ]
+
+
 class MaintenanceGroupSerializer(serializers.ModelSerializer):
     """Serializer for Maintenance Groups"""
     jobs = JobSerializer(many=True, required=False)
 
     class Meta:
         model = MaintenanceGroup
-        fields = ['id', 'name', 'display_name', 'jobs', ]
+        fields = ['id', 'category', 'name', 'display_name', 'jobs', ]
         read_only_fields = ['id', 'name', ]
 
     def _get_or_create_jobs(self, jobs, maintenance_group):

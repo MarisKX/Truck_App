@@ -11,6 +11,7 @@ from maintenance import views
 router = DefaultRouter()
 router.register('maintenance_groups', views.MaintenanceGroupViewSet)
 router.register('jobs', views.JobViewSet)
+router.register('categories', views.CategoryViewSet)
 
 app_name = 'maintenance'
 

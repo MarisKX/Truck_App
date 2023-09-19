@@ -9,7 +9,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-from maintenance.models import MaintenanceGroup, Job
+from maintenance.models import MaintenanceGroup, Job, Category
 from maintenance import serializers
 
 
@@ -48,6 +48,7 @@ class MaintenanceGroupViewSet(viewsets.ModelViewSet):
 
 class JobViewSet(
     mixins.ListModelMixin,
+    mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
@@ -60,4 +61,22 @@ class JobViewSet(
 
     def get_queryset(self):
         """Retrieve all jobs, ordered by name"""
+        return self.queryset.all().order_by('name')
+
+
+class CategoryViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    """Manage Jobs in the database"""
+    serializer_class = serializers.CategorySerializer
+    queryset = Category.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve all categories, ordered by name"""
         return self.queryset.all().order_by('name')

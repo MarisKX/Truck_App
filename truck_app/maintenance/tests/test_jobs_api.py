@@ -21,7 +21,7 @@ def detail_url(job_id):
     return reverse('maintenance:job-detail', args=[job_id])
 
 
-def create_user(email='user@example.com', password='pass1'):
+def create_user(email='user@example.com', password='pass1589'):
     """Create and return a new user"""
     return get_user_model().objects.create_user(
         email=email,
@@ -61,6 +61,17 @@ class PrivateJobsApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_job(self):
+        """Test creating a new job"""
+        payload = {'display_name': 'Tire Balance'}
+        res = self.client.post(JOB_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        job = Job.objects.get(id=res.data['id'])
+        self.assertEqual(job.display_name, payload['display_name'])
+        self.assertEqual(job.name, 'tire_balance')
 
     def test_update_job(self):
         """Test updating a tag"""
