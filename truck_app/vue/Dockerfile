@@ -4,6 +4,7 @@ WORKDIR /vue
 COPY package*.json ./
 RUN npm install
 COPY ./ .
-RUN npm run build
-EXPOSE 8080
+ARG DEV=false
+RUN if [ "$DEV" = "false" ] ; then npm run build ; fi
+EXPOSE 8095
 CMD [ "npm", "run", "serve" ]

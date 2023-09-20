@@ -25,9 +25,14 @@ services:
   vue:
     build:
       context: ./truck_app/vue
+      args:
+        - DEV=true
     command: npm run serve
     ports:
-      - "8080:8080"
+      - "8095:8095"
+    volumes:
+      - ./truck_app/vue:/vue
+      - /vue/node_modules
     depends_on:
       - app
 
