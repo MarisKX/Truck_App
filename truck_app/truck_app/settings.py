@@ -26,8 +26,19 @@ SECRET_KEY = 'django-insecure-=pu3i2tf@09_ve4%i=_#vegm!5%&81bc1(ytk4ec03emhnt__p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+CORS_ALLOWED_ORIGINS = [
+    "http://dev.maris.com:8095",
+    "http://localhost:8095",
+]
+
+CORS_ORIGIN_WHITELIST = [
+    "http://dev.maris.com:8095",  # Vue's address
+    "http://dev.maris.com:8090",  # Django's address (you can include it too for safety, though it might not be strictly necessary)
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -43,6 +54,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'rest_framework.authtoken',
+    'corsheaders',
 
     # Custom apps:
     'core',
@@ -52,6 +64,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -59,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'user.middlewares.TokenExpiryMiddleware',
 ]
 
 ROOT_URLCONF = 'truck_app.urls'
@@ -148,3 +162,8 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 600  # 10 minutes
+SESSION_EXPIRE_SECONDS = 600  # 10 minutes
+SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
