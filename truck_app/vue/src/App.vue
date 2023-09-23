@@ -3,22 +3,6 @@
 </template>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-body {
-  margin: 0;
-  background-image: url("@/assets/kenwortht680sleeper.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 100%;
-}
-
 html,
 body {
   height: 100%;
@@ -29,7 +13,7 @@ nav {
   padding: 30px;
 
   a {
-    font-weight: bold;
+    font-size: 1.5em;
     color: #2c3e50;
 
     &.router-link-exact-active {

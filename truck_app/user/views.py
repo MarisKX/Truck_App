@@ -1,7 +1,6 @@
 """
 Views for the user API
 """
-from django.http import JsonResponse
 from rest_framework import generics, authentication, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -39,10 +38,13 @@ class CreateTokenView(ObtainAuthToken):
             'token': token.key,
         }
 
-        response = JsonResponse(response_data)
-        print("Setting cookie...")
-        response.set_cookie('auth_token', token.key, httponly=False, samesite='Lax')
-        print("Cookie set!")
+        response = Response(response_data)
+        response.set_cookie(
+            'auth_token',
+            token.key,
+            httponly=False,
+            samesite='Lax',
+        )
 
         return response
 
@@ -67,17 +69,18 @@ class CheckAuth(APIView):
         print("Received auth header:", auth_header)
 
         if "Token" in auth_header:
-            # Extract the token key from the Authorization header
             token_key = auth_header.split(" ")[1]
-
             try:
-                # Retrieve the token object based on the key
                 token = Token.objects.get(key=token_key)
+                user = token.user
+                username = user.email
 
-                # Print the token's created timestamp
                 print("Token created at:", token.created)
+                print("Username:", username)
+
+                return Response({"authenticated": True, "username": username})
 
             except Token.DoesNotExist:
                 print("Invalid token")
 
-        return Response({"authenticated": True})
+        return Response({"authenticated": False, "username": None})

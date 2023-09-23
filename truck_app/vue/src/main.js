@@ -4,7 +4,8 @@ import "./registerServiceWorker";
 import store from "./store";
 import router from "./router";
 import axios from "axios";
-import Cookies from "js-cookie"; // Import js-cookie library
+import Cookies from "js-cookie";
+import "./assets/css/global.css";
 
 axios.defaults.withCredentials = true;
 

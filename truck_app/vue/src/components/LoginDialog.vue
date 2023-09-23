@@ -14,8 +14,6 @@
         <button type="submit">LOGIN</button>
       </form>
       <hr />
-      <p>{{ email }}</p>
-      <p>{{ password }}</p>
     </div>
   </div>
 </template>
@@ -45,6 +43,7 @@ export default {
         .then((response) => {
           console.log(response);
           this.$store.commit("setIsAuthenticated", true);
+          this.$store.commit("setUserEmail", response.data.username);
           this.$router.push("/");
         })
         .catch((error) => {
@@ -55,7 +54,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 form {
   max-width: 420px;
   margin: 30px auto;

@@ -20,11 +20,4 @@ export default {
   opacity: 0.6;
   border-radius: 12px;
 }
-.backdrop {
-  top: 0;
-  position: fixed;
-  background: rgba(0, 0, 0, 0.6);
-  width: 100%;
-  height: 100%;
-}
 </style>

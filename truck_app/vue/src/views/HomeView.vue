@@ -1,10 +1,14 @@
 <template>
-  <div class="home">
-    <HeaderComponent />
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <h1>{{ title }}</h1>
-    <input type="text" ref="name" />
-    <button @click="handleClick">Click Me!</button>
+  <div>
+    <div class="home backdrop">
+      <HeaderComponent />
+      <div class="main">
+        <img alt="Vue logo" src="../assets/logo.png" />
+        <h1></h1>
+        <input type="text" ref="name" />
+        <button @click="handleClick">Click Me!</button>
+      </div>
+    </div>
   </div>
 </template>
 

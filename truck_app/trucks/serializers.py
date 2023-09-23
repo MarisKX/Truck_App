@@ -25,6 +25,11 @@ class TruckSerializer(serializers.ModelSerializer):
             'model',
             'year',
             'vin',
+            'color',
+            'engine',
+            'fuel',
+            'transmission',
+            'body_style',
         ]
         read_only_fields = ['id', 'user', ]
 

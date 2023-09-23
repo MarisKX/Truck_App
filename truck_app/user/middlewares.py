@@ -1,8 +1,10 @@
-from django.conf import settings
+"""
+Middleware to handle auth token expiry
+"""
 from django.utils import timezone
-from datetime import timedelta
 from django.http import JsonResponse
 from rest_framework.authtoken.models import Token
+
 
 class TokenExpiryMiddleware:
     def __init__(self, get_response):
@@ -22,7 +24,7 @@ class TokenExpiryMiddleware:
             last_activity = token_obj.created
             now = timezone.now()  # Use Django's timezone-aware datetime
 
-            if (now - last_activity).total_seconds() > 600:  # 10 minutes
+            if (now - last_activity).total_seconds() > 900:  # 15 minutes
                 token_obj.delete()
                 return JsonResponse({"error": "Token expired"}, status=401)
 
@@ -30,7 +32,5 @@ class TokenExpiryMiddleware:
             token_obj.save()
 
         response = self.get_response(request)
-
-        # Code to be executed for each request/response after the view is called
 
         return response

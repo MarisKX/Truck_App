@@ -25,6 +25,19 @@ class Truck(models.Model):
 
     color = models.CharField(max_length=30, blank=True, null=True)
     engine = models.CharField(max_length=30, blank=True, null=True)
+    fuel = models.CharField(max_length=30, blank=True, null=True)
+    transmission = models.CharField(max_length=60, blank=True, null=True)
+    body_style = models.CharField(max_length=60, blank=True, null=True)
 
     def __str__(self):
         return self.licence_plate
+
+
+class MaintenanceLog(models.Model):
+    """Maintenance Logs Objects"""
+    truck = models.ForeignKey(Truck, on_delete=models.CASCADE)
+    log_number = models.CharField(max_length=8, default='1')
+    date = models.DateField(auto_now=False)
+
+    def __str__(self):
+        return self.log_number

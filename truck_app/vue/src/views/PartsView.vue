@@ -1,14 +1,18 @@
 <template>
-  <div class="about">
-    <HeaderComponent />
-    <h1>This is an about page</h1>
+  <div>
+    <div class="parts backdrop">
+      <HeaderComponent />
+      <div class="main">
+        <h1>This is a parts page</h1>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import HeaderComponent from "../components/HeaderComponent.vue";
 export default {
-  name: "AboutView",
+  name: "PartsView",
   components: {
     HeaderComponent,
   },
