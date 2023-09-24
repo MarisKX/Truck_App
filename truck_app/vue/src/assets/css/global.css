@@ -120,3 +120,8 @@ a {
   opacity: 1;
   transition: opacity 0.3s;
 }
+.content-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

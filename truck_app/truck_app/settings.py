@@ -55,12 +55,14 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'rest_framework.authtoken',
     'corsheaders',
+    'django_countries',
 
     # Custom apps:
     'core',
     'user',
     'trucks',
     'maintenance',
+    'companies',
 ]
 
 MIDDLEWARE = [
