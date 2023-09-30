@@ -12,34 +12,36 @@ class TokenExpiryMiddleware:
 
     def __call__(self, request):
         # Check for the token in the cookie
-        if request.path.startswith('/admin') or request.path.startswith('/api/docs') or request.path.startswith('/api/schema'):
+        if request.path.startswith('/admin') or request.path.startswith('/api/docs') or request.path.startswith('/api/schema'):  # noqa
             print("request starts with admin or api")
-            # If it's an admin or API path, skip middleware processing
+
             response = self.get_response(request)
         else:
             print("request starts with Vue urls")
             token_key = request.COOKIES.get('auth_token')
-            response = None  # Define response variable here
+            response = None
 
             if token_key:
                 try:
                     token_obj = Token.objects.get(key=token_key)
                 except Token.DoesNotExist:
-                    response = JsonResponse({"error": "Invalid Token"}, status=401)
+                    response = JsonResponse(
+                        {"error": "Invalid Token"}, status=401)
                 else:
                     last_activity = token_obj.created
-                    now = timezone.now()  # Use Django's timezone-aware datetime
+                    now = timezone.now()
 
-                    if (now - last_activity).total_seconds() > 600:  # 15 minutes
+                    if (now - last_activity).total_seconds() > 600:
                         token_obj.delete()
-                        response = JsonResponse({"error": "Token expired"}, status=401)
+                        response = JsonResponse(
+                            {"error": "Token expired"}, status=401)
 
                 if response:
                     response.set_cookie(
                         'auth_token',
                         '',
-                        expires='Thu, 01 Jan 1970 00:00:01 GMT',  # This is in the past
-                        domain='.maris.com',  # Add this line to allow subdomain access
+                        expires='Thu, 01 Jan 1970 00:00:01 GMT',
+                        domain='.maris.com',
                         httponly=True,
                         samesite='Lax',
                     )
@@ -52,6 +54,6 @@ class TokenExpiryMiddleware:
                     request.META['HTTP_AUTHORIZATION'] = f'Token {token_key}'
 
             if response is None:
-                response = self.get_response(request)  # Only get_response if no error occurred
+                response = self.get_response(request)
 
         return response

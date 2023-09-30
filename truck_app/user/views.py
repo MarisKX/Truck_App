@@ -1,7 +1,7 @@
 """
 Views for the user API
 """
-from rest_framework import generics, authentication, permissions
+from rest_framework import generics, authentication, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
@@ -79,7 +79,9 @@ class CheckAuth(APIView):
         elif cookie_token:
             token_key = cookie_token
         else:
-            return JsonResponse({"authenticated": False, "username": None}, status=status.HTTP_401_UNAUTHORIZED)
+            return JsonResponse(
+                {"authenticated": False, "username": None},
+                status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             token_obj = Token.objects.get(key=token_key)
@@ -89,7 +91,9 @@ class CheckAuth(APIView):
             # Your existing logic here...
 
         except Token.DoesNotExist:
-            return JsonResponse({"authenticated": False, "username": None}, status=status.HTTP_401_UNAUTHORIZED)
+            return JsonResponse(
+                {"authenticated": False, "username": None},
+                status=status.HTTP_401_UNAUTHORIZED)
 
         return JsonResponse({"authenticated": True, "username": username})
 
