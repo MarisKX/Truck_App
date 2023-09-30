@@ -1,4 +1,5 @@
 const { defineConfig } = require("@vue/cli-service");
+const fs = require("fs");
 
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -11,7 +12,11 @@ module.exports = defineConfig({
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
-      allowedHosts: ["dev.maris.com"],
+      allowedHosts: ["dev.maris.com", "maris.com", "localhost"],
+      https: {
+        key: fs.readFileSync("./ssl/key.pem"),
+        cert: fs.readFileSync("./ssl/cert.pem"),
+      },
     },
     watchOptions: {
       ignored: /node_modules/,

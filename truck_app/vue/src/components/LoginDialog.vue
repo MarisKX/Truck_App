@@ -31,7 +31,7 @@ export default {
     async login() {
       axios
         .post(
-          "http://dev.maris.com:8090/api/user/token/",
+          "https://dev.maris.com:8090/api/user/token/",
           {
             email: this.email,
             password: this.password,
@@ -43,6 +43,7 @@ export default {
         .then((response) => {
           console.log(response);
           this.$store.commit("setIsAuthenticated", true);
+          this.$store.commit("setAuthToken", response.data.token);
           this.$store.commit("setUserEmail", response.data.username);
           this.$router.push("/");
         })

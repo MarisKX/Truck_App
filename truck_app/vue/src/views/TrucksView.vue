@@ -126,7 +126,7 @@ export default {
     async fetchData() {
       try {
         const response = await axios.get(
-          "http://dev.maris.com:8090/api/truck/trucks/",
+          "https://dev.maris.com:8090/api/truck/trucks/",
           {
             headers: {
               "X-CSRFToken": this.csrfToken,

@@ -64,10 +64,6 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = store.state.isAuthenticated;
   console.log(isAuthenticated);
-  if (!isAuthenticated) {
-    document.cookie =
-      "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  }
 
   if (
     to.matched.some((record) => record.meta.requiresAuth) &&

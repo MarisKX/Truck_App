@@ -28,17 +28,25 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+SSL_ENABLED = True
+
 CORS_ALLOWED_ORIGINS = [
-    "http://dev.maris.com:8095",
-    "http://localhost:8095",
+    "https://dev.maris.com:8095",
+    "https://maris.com:8095",
+    "https://localhost:8095",
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    "http://dev.maris.com:8095",  # Vue's address
-    "http://dev.maris.com:8090",  # Django's address (you can include it too for safety, though it might not be strictly necessary)
+    "https://maris.com:8095",  # Vue's address
+    "https://dev.maris.com:8090",  # Django's address (you can include it too for safety, though it might not be strictly necessary)
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://maris.com:8095",
+    "https://dev.maris.com:8095",
+]
 
 # Application definition
 
@@ -56,6 +64,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_countries',
+    'sslserver',
 
     # Custom apps:
     'core',
@@ -164,6 +173,8 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'COMPONENT_SPLIT_REQUEST': True,
 }
+
+
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 600  # 10 minutes

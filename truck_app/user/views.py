@@ -6,7 +6,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView, View
+from django.http import JsonResponse
 
 
 from user.serializers import (
@@ -42,7 +43,8 @@ class CreateTokenView(ObtainAuthToken):
         response.set_cookie(
             'auth_token',
             token.key,
-            httponly=False,
+            domain='.maris.com',  # Add this line to allow subdomain access
+            httponly=True,
             samesite='Lax',
         )
 
@@ -64,23 +66,47 @@ class CheckAuth(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [authentication.TokenAuthentication]
 
+    def get_token_from_cookie(self, request):
+        return request.COOKIES.get('auth_token')
+
     def get(self, request):
-        auth_header = request.META.get("HTTP_AUTHORIZATION")
-        print("Received auth header:", auth_header)
+        auth_token = request.META.get("HTTP_AUTHORIZATION")
+        cookie_token = self.get_token_from_cookie(request)
 
-        if "Token" in auth_header:
-            token_key = auth_header.split(" ")[1]
-            try:
-                token = Token.objects.get(key=token_key)
-                user = token.user
-                username = user.email
+        # Check for the token in the cookie or header
+        if auth_token and "Token" in auth_token:
+            token_key = auth_token.split(" ")[1]
+        elif cookie_token:
+            token_key = cookie_token
+        else:
+            return JsonResponse({"authenticated": False, "username": None}, status=status.HTTP_401_UNAUTHORIZED)
 
-                print("Token created at:", token.created)
-                print("Username:", username)
+        try:
+            token_obj = Token.objects.get(key=token_key)
+            user = token_obj.user
+            username = user.email
 
-                return Response({"authenticated": True, "username": username})
+            # Your existing logic here...
 
-            except Token.DoesNotExist:
-                print("Invalid token")
+        except Token.DoesNotExist:
+            return JsonResponse({"authenticated": False, "username": None}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({"authenticated": False, "username": None})
+        return JsonResponse({"authenticated": True, "username": username})
+
+
+class LogoutView(View):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def get(self, request):
+        # Delete the auth_token cookie
+        response = JsonResponse({"message": "Logged out successfully"})
+        response.set_cookie(
+            'auth_token',
+            '',
+            expires='Thu, 01 Jan 1970 00:00:01 GMT',  # This is in the past
+            domain='.maris.com',  # Add this line to allow subdomain access
+            httponly=True,
+            samesite='Lax',
+        )
+        return response

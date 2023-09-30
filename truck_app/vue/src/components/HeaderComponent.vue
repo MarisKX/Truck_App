@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   computed: {
     isAuthenticated() {
@@ -33,19 +35,26 @@ export default {
     },
   },
   methods: {
-    logout() {
-      // Code to delete cookies
-      this.$store.commit("setIsAuthenticated", false);
-      document.cookie =
-        "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      console.log("Deleted auth_token");
-      document.cookie =
-        "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      console.log("Deleted csrftoken");
+    async logout() {
+      try {
+        // Send the POST request with the CSRF token directly
+        await axios.get("https://dev.maris.com:8090/api/user/log-out/", {
+          withCredentials: true,
+        });
 
-      window.history.pushState(null, "", "/login");
-      const currentPage = window.location.href;
-      window.history.replaceState(null, "", currentPage);
+        // Clear user authentication state
+        this.$store.commit("setIsAuthenticated", false);
+        this.$store.commit("clearAuthToken");
+
+        // Redirect to the login page
+        window.history.pushState(null, "", "/login");
+        const currentPage = window.location.href;
+        window.history.replaceState(null, "", currentPage);
+
+        // Handle the response (e.g., log out the user)
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
     },
   },
 };

@@ -11,26 +11,47 @@ class TokenExpiryMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Code to be executed for each request before the view is called
-        token = request.META.get("HTTP_AUTHORIZATION")
+        # Check for the token in the cookie
+        if request.path.startswith('/admin') or request.path.startswith('/api/docs') or request.path.startswith('/api/schema'):
+            print("request starts with admin or api")
+            # If it's an admin or API path, skip middleware processing
+            response = self.get_response(request)
+        else:
+            print("request starts with Vue urls")
+            token_key = request.COOKIES.get('auth_token')
+            response = None  # Define response variable here
 
-        if token:
-            print(token)
-            try:
-                token_obj = Token.objects.get(key=token.split(" ")[1])
-            except Token.DoesNotExist:
-                return JsonResponse({"error": "Invalid Token"}, status=401)
+            if token_key:
+                try:
+                    token_obj = Token.objects.get(key=token_key)
+                except Token.DoesNotExist:
+                    response = JsonResponse({"error": "Invalid Token"}, status=401)
+                else:
+                    last_activity = token_obj.created
+                    now = timezone.now()  # Use Django's timezone-aware datetime
 
-            last_activity = token_obj.created
-            now = timezone.now()  # Use Django's timezone-aware datetime
+                    if (now - last_activity).total_seconds() > 600:  # 15 minutes
+                        token_obj.delete()
+                        response = JsonResponse({"error": "Token expired"}, status=401)
 
-            if (now - last_activity).total_seconds() > 900:  # 15 minutes
-                token_obj.delete()
-                return JsonResponse({"error": "Token expired"}, status=401)
+                if response:
+                    response.set_cookie(
+                        'auth_token',
+                        '',
+                        expires='Thu, 01 Jan 1970 00:00:01 GMT',  # This is in the past
+                        domain='.maris.com',  # Add this line to allow subdomain access
+                        httponly=True,
+                        samesite='Lax',
+                    )
+                else:
+                    token_obj.created = now
+                    print(token_obj.created)
+                    token_obj.save()
 
-            token_obj.created = now
-            token_obj.save()
+                    # Add the token to the request headers
+                    request.META['HTTP_AUTHORIZATION'] = f'Token {token_key}'
 
-        response = self.get_response(request)
+            if response is None:
+                response = self.get_response(request)  # Only get_response if no error occurred
 
         return response
